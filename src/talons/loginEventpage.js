@@ -2,7 +2,7 @@ import BrowserPersistence from '@magento/peregrine/lib/util/simplePersistence';
 
 const storage = new BrowserPersistence();
 
-export const loginEventpage = props => {
+export const getRememberInfo = props => {
     const rememberInfo = storage.getItem('remember_info') || {};
     const {email, password} = rememberInfo;
     const isRemembered = () => !!email
@@ -15,14 +15,13 @@ export const loginEventpage = props => {
     };
 };
 
-export const setRememberInfo = rememberInfo =>
+export const setRememberInfo = () =>
     async function thunk(...args) {
         const [dispatch] = args;
         storage.setItem('remember_info', dispatch);
     };
 
-export const clearRememberInfo = rememberInfo =>
+export const clearRememberInfo = () =>
     async function thunk(...args) {
-        const [dispatch] = args;
-        storage.removeItem('remember_info');
+		storage.removeItem('remember_info');
     };
