@@ -24,7 +24,7 @@ import { mergeCartsMutation } from '@magento/venia-ui/lib/queries/mergeCarts.gql
 import defaultClasses from './login.scss';
 import { GET_CART_DETAILS_QUERY } from '@magento/venia-ui/lib/components/SignIn/signIn.gql';
 import ToastContainer from '@magento/venia-ui/lib/components/ToastContainer/toastContainer';
-import { loginEventpage } from '../../talons/loginEventpage';
+import { getRememberInfo } from '../../talons/loginEventpage';
 
 import { Info } from 'react-feather';
 
@@ -56,12 +56,12 @@ const Login = props => {
   });
   
   
-  const talonPropsLoginEvent = loginEventpage();
+  const talonGetRememberInfo = getRememberInfo();
   const {
         isRemembered,
 		loginEmail,
 		loginPassword
-  } = talonPropsLoginEvent;
+  } = talonGetRememberInfo;
 
   const {
     errors,

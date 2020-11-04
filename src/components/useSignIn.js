@@ -55,7 +55,7 @@ export const useSignIn = props => {
     const fetchCartDetails = useAwaitQuery(getCartDetailsQuery);
 
     const talonPropsRememberInfo = setRememberInfo();
-    const talonRememberInfo = clearRememberInfo();
+    const talonClearRememberInfo = clearRememberInfo();
 
 
     const errors = [];
@@ -76,7 +76,7 @@ export const useSignIn = props => {
             if(subscribe) {
                 await talonPropsRememberInfo({ email, password});
             } else {
-                await talonRememberInfo({ email, password});
+                await talonClearRememberInfo({ email, password});
             }
             setIsSigningIn(true);
             try {
