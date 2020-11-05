@@ -24,7 +24,7 @@ import { mergeCartsMutation } from '@magento/venia-ui/lib/queries/mergeCarts.gql
 import defaultClasses from './login.scss';
 import { GET_CART_DETAILS_QUERY } from '@magento/venia-ui/lib/components/SignIn/signIn.gql';
 import ToastContainer from '@magento/venia-ui/lib/components/ToastContainer/toastContainer';
-import { getRememberInfo } from '../../talons/loginEventpage';
+import { getRememberInfo } from '../../utils/loginEventpage';
 
 import { Info } from 'react-feather';
 
@@ -55,13 +55,12 @@ const Login = props => {
     showForgotPassword
   });
 
-
-  const talonGetRememberInfo = getRememberInfo();
+  const UtilsGetRememberInfo = getRememberInfo();
   const {
     isRemembered,
     loginEmail,
     loginPassword
-  } = talonGetRememberInfo;
+  } = UtilsGetRememberInfo;
 
   const {
     errors,
@@ -72,6 +71,7 @@ const Login = props => {
     setFormApi,
     getToken
   } = talonProps;
+
   const [Email] = useState(localStorage.getItem('Email'));
   // const Email = localStorage.getItem("Email") ? localStorage.getItem("Email") : null;
   // const Password = localStorage.getItem("Password") ? localStorage.getItem("Password") : null;
@@ -88,7 +88,7 @@ const Login = props => {
 
                       <div className={defaultClasses.tabframe}>
 
-                        <ul class="nav nav-tabs" className={defaultClasses['toggling-tabs']}>
+                        <ul className="nav nav-tabs" className={defaultClasses['toggling-tabs']}>
                           <li className="active"><a data-toggle="tab" href="#emailLogin">Email ID</a></li>
                           <li><a data-toggle="tab" href="#mobileLogin">Mobile Number</a></li>
                         </ul>
@@ -105,8 +105,8 @@ const Login = props => {
                                 <Field label="Email ID" className={defaultClasses.emailField} required={true}>
                                   <TextInput
                                       field="email"
-                                      initialValue={loginEmail}
                                       autoComplete="email"
+                                      initialValue={loginEmail}
                                       placeholder="Enter here"
                                       validate={isRequired} />
                                 </Field>
@@ -116,8 +116,8 @@ const Login = props => {
                                     <Link to="/showforgotPassword" className={defaultClasses.forgotpassword}>Forgot Password ?</Link>
                                     <TextInput
                                         field="password"
-                                        initialValue={loginPassword}
                                         id="password"
+                                        initialValue={loginPassword}
                                         type={passwordShown ? "text" : "password"}
                                         autoComplete="new-password"
                                         placeholder="Password"
