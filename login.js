@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Component, useEffect, useRef, useCallback   } from 'react';
 import { Link, Redirect } from "react-router-dom";
 import Field from '@magento/venia-ui/lib/components/Field/field';
 import Button from '@magento/venia-ui/lib/components/Button/button';
@@ -7,7 +7,7 @@ import TextInput from '@magento/venia-ui/lib/components/TextInput/textInput';
 import Icon from '@magento/venia-ui/lib/components/Icon/icon';
 import { Container, Row, Col } from 'react-bootstrap';
 import {
-  EyeOff, Eye
+  EyeOff, Eye, AlertCircle
 } from 'react-feather';
 
 import { func, shape, string } from 'prop-types';
@@ -24,26 +24,39 @@ import { mergeCartsMutation } from '@magento/venia-ui/lib/queries/mergeCarts.gql
 import defaultClasses from './login.scss';
 import { GET_CART_DETAILS_QUERY } from '@magento/venia-ui/lib/components/SignIn/signIn.gql';
 import ToastContainer from '@magento/venia-ui/lib/components/ToastContainer/toastContainer';
+import { getRememberInfo } from './utils/loginEventpage';
 
 import { Info } from 'react-feather';
 
-import { useQuery } from '@apollo/react-hooks';
-import { GET_OTP } from '../queries/sendOtp.gql';
-
 // Components import
 import { MarketPlace } from '../MarketPlace/marketPlace';
+import OtpInput from 'react-otp-input';
+import RequestOtp  from './RequestOtp';
+import LoginOtp  from './loginOtp';
+import ResendOtp from './ResendOtp';
+import Tooltip from 'react-bootstrap/Tooltip';
 
 const Login = props => {
+  
   const [passwordShown, setPasswordShown] = useState(false);
   const togglePasswordVisiblity = () => {
-    setShowOtpComponent(true);
+    setPasswordShown(passwordShown ? false : true);
   };
-  const requestOtp = () => {
-    let btn = document.getElementById("requestOtpBtn");
-    btn.classList.add(defaultClasses.hide);
-    let otp = document.getElementById("enterOtp");
-    otp.classList.remove(defaultClasses.hide);
-  };
+  const [otp, setOtp] = useState(null);
+  const handleOtp = (event) => {
+    setOtp(event)
+  }
+  
+  
+  const formApiOtp = useRef(null);
+  
+  // pass this to `Form` to get its API
+  const setFormOtpApi = useCallback(
+        api => { formApiOtp.current = api },
+        []
+  );
+
+
   const { setDefaultUsername, showCreateAccount, showForgotPassword } = props;
 
   const talonProps = useSignIn({
@@ -57,14 +70,17 @@ const Login = props => {
     showForgotPassword
   });
 
-  // Fetch the data using apollo react hooks
-  const { data, error, loading } = useQuery(GET_OTP, {
-    variables: { telephone: '9966782887' }
-  });
+ 
 
-  console.log(data);
+  const UtilsGetRememberInfo = getRememberInfo();
+  const {
+    isRemembered,
+    loginEmail,
+    loginPassword
+  } = UtilsGetRememberInfo;
 
-	const {
+
+  const {
     errors,
     handleCreateAccount,
     handleForgotPassword,
@@ -73,9 +89,10 @@ const Login = props => {
     setFormApi,
     getToken
   } = talonProps;
-  const [Email] = useState(localStorage.getItem('Email'));
-  // const Email = localStorage.getItem("Email") ? localStorage.getItem("Email") : null;
-  // const Password = localStorage.getItem("Password") ? localStorage.getItem("Password") : null;
+
+  
+
+  
   return (
     <Container fluid="md" className={defaultClasses['custom-container']}>
       <Row>
@@ -89,7 +106,7 @@ const Login = props => {
 
                 <div className={defaultClasses.tabframe}>
 
-                <ul class="nav nav-tabs" className={defaultClasses['toggling-tabs']}>
+                <ul  className={defaultClasses.nav + '' + defaultClasses[']nav-tabs']} className={defaultClasses['toggling-tabs']}>
                   <li className="active"><a data-toggle="tab" href="#emailLogin">Email ID</a></li>
                   <li><a data-toggle="tab" href="#mobileLogin">Mobile Number</a></li>
                 </ul>
@@ -106,6 +123,8 @@ const Login = props => {
                         <Field label="Email ID" className={defaultClasses.emailField} required={true}>
                           <TextInput
                             field="email"
+                            id="email"
+                            initialValue={loginEmail}
                             autoComplete="email"
                             placeholder="Enter here"
                             validate={isRequired} />
@@ -113,10 +132,11 @@ const Login = props => {
 
                         <div className={defaultClasses.passwordwithIcon}>
                           <Field label="Password" className={defaultClasses.passwordField} required={true}>
-                            <Link to="/showforgotPassword" className={defaultClasses.forgotpassword}>Forgot Password ?</Link>
+                            <Link to="/showforgotPassword" tabindex="-1" className={defaultClasses.forgotpassword}>Forgot Password?</Link>
                             <TextInput
                               field="password"
                               id="password"
+                              initialValue={loginPassword}
                               type={passwordShown ? "text" : "password"}
                               autoComplete="new-password"
                               placeholder="Password"
@@ -130,8 +150,11 @@ const Login = props => {
                           <Checkbox
                             field="subscribe"
                             label="Remember Me"
+                            id="checkbox"
+                            initialValue={isRemembered}
                             className={defaultClasses.rememberMeCheckbox} />
-                            <Icon className={defaultClasses['info-icon']} src={Info} size={14} />
+                            <Icon className={defaultClasses['info-icon']} src={Info} className={defaultClasses.tooltip} size={14} />
+                            
                         </div>
                         <br />
                         <div className={defaultClasses.terms}>By continuing, you agree to Marketplace's <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policies</a></div>
@@ -151,38 +174,42 @@ const Login = props => {
                   
                   <div id="mobileLogin" className="tab-pane">
                     <div className={defaultClasses.tab}>
-                      <Form
-                        getApi={setFormApi}
-
-                        onSubmit={handleSubmit}>
+                      <Form getApi={setFormOtpApi}>
                         <h1>Login</h1>
                         <Field label="Mobile Number" className={defaultClasses.emailField} required={true}>
                           <TextInput
                             field="phone"
                             autoComplete="phone"
                             placeholder="Enter here"
-                            validate={isRequired} />
+                            validate={isRequired}
+                           />
                         </Field>
+                        <p id="enterPhone" className={defaultClasses.hide}>Please enter phone number</p>
+                        <p id="enterPhoneValid" className={defaultClasses.hide}>Please enter valid phone number</p>
                         <div id="requestOtpBtn" className={defaultClasses.requestOtp}>
-                          <Button className={defaultClasses.requestOtpBtn} onClick={requestOtp}>
-                            {'Request OTP'}
-                          </Button>
+                            <RequestOtp/>
                         </div> 
                         <div id="enterOtp" className={defaultClasses.hide}>
                         
                           <div className={defaultClasses.otpcomponent}>
                             <label>OTP</label>
+                            <div className={defaultClasses.resendOtp}>
+                              (1:30 minutes) <ResendOtp />
+                            </div>
                           </div>
-                          <div>
-                            Otp component here
+                          <div className={defaultClasses.enterOtpComponent}>
+                            
+                              <OtpInput
+                                  value={otp}
+                                  numInputs={6} 
+                                  onChange={(event) => {handleOtp(event)}} />
+                            
                           </div>
                         </div>
                         
                         <div className={defaultClasses.terms}>By continuing, you agree to Marketplace's <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policies</a></div>
                         <div className={defaultClasses.otpLoginBtn}>
-                          <Button type="submit" priority="high" className={defaultClasses.otpLogin}>
-                            {'Login'}
-                          </Button>
+                          <LoginOtp otp={otp} />
                         </div>
                         <div className={defaultClasses.newUser}>
                           New User? <a href="#">REGISTER NOW</a>
